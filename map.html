@@ -1,0 +1,64 @@
+<html>
+    <head>
+        <title>Snapchat Map - By Medteck</title>
+        <style>
+            /* Set the size of the div element that contains the map */
+           #map {
+             height: 600px;  /* The height is 400 pixels */
+             width: 1200px;  /* The width is the width of the web page */
+            }
+         </style>
+    </head>
+    <body>
+        <h3>Snapchat Map - By Medteck</h3>
+        <!--The div element for the map -->
+        <div id="map"></div>
+
+        <script>
+            // Initialize and add the map
+            function initMap() {
+                // The location of Uluru
+                var uluru = {lat: 48.453, lng: -68.525};
+                // The map, centered at Uluru
+                var map = new google.maps.Map(
+                    document.getElementById('map'), {zoom: 15, center: uluru});
+                // The marker, positioned at Uluru
+                var marker = new google.maps.Marker({position: uluru, map: map});
+
+                var xobj = new XMLHttpRequest();
+                    xobj.overrideMimeType("application/json");
+                xobj.open('GET', './json/location_history.json', true); // Replace 'my_data' with the path to your file
+                xobj.onreadystatechange = function () {
+                    if (xobj.readyState == 4 && xobj.status == "200") {
+                        // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+                        var locations = JSON.parse(xobj.response)['Location History'];
+                        var points = [];
+                        locations.forEach((location) => {
+                            var coords = location['Latitude, Longitude'];
+                            if(points[coords] == null) {
+                                points[coords] = {
+                                    lat: parseFloat(coords.substr(0, 6)),
+                                    lng: parseFloat(coords.substr(coords.indexOf(', ') + 2, 7))
+                                }
+                                new google.maps.Marker({
+                                    position: points[coords],
+                                    map: map
+                                })
+                                points[coords].time = location['Time'];
+                            }
+                        });
+                        console.log(points);
+                    }
+                };
+                xobj.send(null);
+            }
+        </script>
+        <!--Load the API from the specified URL
+        * The async attribute allows the browser to render the page while the API loads
+        * The key parameter will contain your own API key (which is not needed for this tutorial)
+        * The callback parameter executes the initMap() function
+        -->
+        <script defer src="https://maps.googleapis.com/maps/api/js?key=<YOUR-GMAPS-API-KEY>&callback=initMap"></script>
+
+    </body>
+</html>
